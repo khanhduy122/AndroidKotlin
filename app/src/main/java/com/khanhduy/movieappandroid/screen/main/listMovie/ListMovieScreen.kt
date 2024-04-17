@@ -1,4 +1,4 @@
-package com.khanhduy.movieappandroid.screen.main.newMovie
+package com.khanhduy.movieappandroid.screen.main.listMovie
 
 import android.annotation.SuppressLint
 import android.util.Log
@@ -45,24 +45,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.khanhduy.movieappandroid.data.api.ApiConstant
 import com.khanhduy.movieappandroid.dialog.DiaLogError
+import com.khanhduy.movieappandroid.models.ListMovieItem
+import com.khanhduy.movieappandroid.models.ListMovieModel
 import com.khanhduy.movieappandroid.models.Movie
-import com.khanhduy.movieappandroid.models.NewMovieModel
 import com.khanhduy.movieappandroid.ui.theme.BackgroundColor
+import com.khanhduy.movieappandroid.ui.theme.BlueColor
 import com.khanhduy.movieappandroid.ui.theme.HintColor
 import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun NewMovieScreen() {
-    val newMovieViewModel: NewMovieViewModel = hiltViewModel<NewMovieViewModel>()
-    val newMovieState by newMovieViewModel.uiState.collectAsState()
+fun ListMovieScreen(indexTab: Int){
+    val listMovieViewModel: ListMovieViewModel = hiltViewModel<ListMovieViewModel>()
+    val listMovieState by listMovieViewModel.uiState.collectAsState()
 
 
     var isLoading by rememberSaveable() {
         mutableStateOf(true)
     }
-    var newMovieModel: NewMovieModel? = null
+    var listMovieModel: ListMovieModel? = null
 
     var currentPage by rememberSaveable {
         mutableStateOf(1)
@@ -85,18 +88,23 @@ fun NewMovieScreen() {
 
 
     LaunchedEffect(key1 = currentPage) {
-        newMovieViewModel.getNewMovie(currentPage)
+        when(indexTab){
+            1 -> listMovieViewModel.getSeriesMovie(currentPage)
+            2 -> listMovieViewModel.getSingleMovie(currentPage)
+            3 -> listMovieViewModel.getCartoonMovie(currentPage)
+        }
+
     }
 
-    when (newMovieState) {
-        is NewMovieState.Innit -> {
+    when (listMovieState) {
+        is ListMovieState.Innit -> {
             Log.e("bbb", "loading")
             isLoading = true
         }
 
-        is NewMovieState.Success -> {
+        is ListMovieState.Success -> {
             Log.e("bbb", "loading success")
-            newMovieModel = (newMovieState as NewMovieState.Success).newMovieModel
+            listMovieModel = (listMovieState as ListMovieState.Success).listMovieModel
             isLoading = false
             rememberCoroutineScope().launch {
                 scrollState.scrollToItem(0, 0)
@@ -104,7 +112,7 @@ fun NewMovieScreen() {
 
         }
 
-        NewMovieState.Error -> {
+        ListMovieState.Error -> {
             isShowDialogError = true
         }
     }
@@ -120,7 +128,7 @@ fun NewMovieScreen() {
             }
         }
 
-        if (isLoading || newMovieModel == null) {
+        if (isLoading || listMovieModel == null) {
             Box(
                 Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
@@ -136,11 +144,11 @@ fun NewMovieScreen() {
                 verticalArrangement = Arrangement.spacedBy(20.dp),
                 horizontalArrangement = Arrangement.spacedBy(30.dp),
             ) {
-                items(newMovieModel.items){  movie ->
-                    NewMovieItem(movie = movie)
+                items(listMovieModel.data.items){ movie ->
+                    ListMovieItem(movie)
                 }
                 item (
-                    span = { GridItemSpan(2)}
+                    span = { GridItemSpan(2) }
                 ) {
                     Column {
                         Spacer(modifier = Modifier.height(20.dp))
@@ -201,9 +209,12 @@ fun NewMovieScreen() {
                                 contentDescription = null,
                                 tint = Color.White,
                                 modifier = Modifier.clickable {
-                                    if (totalPageDisplay + 4 >= newMovieModel.pagination.totalPages) {
+                                    if(totalPageDisplay == listMovieModel.data.params.pagination.totalPages){
+                                        return@clickable
+                                    }
+                                    if (totalPageDisplay + 4 >= listMovieModel.data.params.pagination.totalPages) {
                                         startPage += 4
-                                        totalPageDisplay += newMovieModel.pagination.totalPages - totalPageDisplay
+                                        totalPageDisplay += listMovieModel.data.params.pagination.totalPages - totalPageDisplay
                                     } else {
                                         startPage += 4
                                         totalPageDisplay += 4
@@ -212,7 +223,7 @@ fun NewMovieScreen() {
                             )
                         }
                     }
-                    
+
                 }
             }
 
@@ -221,21 +232,34 @@ fun NewMovieScreen() {
 }
 
 @Composable
-fun NewMovieItem(movie: Movie) {
+fun ListMovieItem(movie: ListMovieItem) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        AsyncImage(
-            model = movie.poster_url,
-            contentDescription = null,
-            modifier = Modifier
-                .height(200.dp)
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp)),
-            contentScale = ContentScale.Crop,
-        )
+        Box {
+            AsyncImage(
+                model = "${ApiConstant.domainImge}${movie.poster_url}",
+                contentDescription = null,
+                modifier = Modifier
+                    .height(200.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp)),
+                contentScale = ContentScale.Crop,
+            )
+            Box (
+                Modifier.align(Alignment.TopStart)
+                    .padding(start = 10.dp, top = 10.dp)
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(BlueColor)
+            ) {
+                Text(
+                    text = movie.quality, style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(5.dp)
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(10.dp))
-        Text(text = movie.name, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+        Text(text = movie.name, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
     }
 
 }

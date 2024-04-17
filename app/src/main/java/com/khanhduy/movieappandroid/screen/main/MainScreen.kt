@@ -30,10 +30,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.khanhduy.movieappandroid.screen.main.cartoonMovie.CartoonMovieScreen
+import com.khanhduy.movieappandroid.screen.main.listMovie.ListMovieScreen
 import com.khanhduy.movieappandroid.screen.main.newMovie.NewMovieScreen
-import com.khanhduy.movieappandroid.screen.main.seriesMovie.SeriesMovieScreen
-import com.khanhduy.movieappandroid.screen.main.singleMovie.SingleMovieScreen
 import com.khanhduy.movieappandroid.ui.theme.BackgroundColor
 import com.khanhduy.movieappandroid.ui.theme.BlueColor
 import com.khanhduy.movieappandroid.ui.theme.DarkColor
@@ -116,9 +114,9 @@ fun MainScreen(navController: NavHostController = rememberNavController()) {
             Spacer(modifier = Modifier.height(20.dp))
             when (currentIndexTab) {
                 0 -> NewMovieScreen()
-                1 -> SeriesMovieScreen()
-                2 -> SingleMovieScreen()
-                3 -> CartoonMovieScreen()
+                1 -> ListMovieScreen(1)
+                2 -> ListMovieScreen(2)
+                3 -> ListMovieScreen(3)
             }
         }
 
