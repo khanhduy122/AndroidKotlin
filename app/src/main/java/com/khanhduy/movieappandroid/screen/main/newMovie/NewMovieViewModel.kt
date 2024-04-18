@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.khanhduy.movieappandroid.data.api.ApiService
 import com.khanhduy.movieappandroid.models.NewMovieModel
+import com.khanhduy.movieappandroid.repository.ApiRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +15,7 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class NewMovieViewModel @Inject constructor (private val apiService: ApiService) : ViewModel(){
+class NewMovieViewModel @Inject constructor (private val apiRepository: ApiRepository) : ViewModel(){
 
     private val _uiState = MutableStateFlow<NewMovieState>(NewMovieState.Innit)
     val uiState : StateFlow<NewMovieState> = _uiState.asStateFlow()
@@ -28,26 +29,23 @@ class NewMovieViewModel @Inject constructor (private val apiService: ApiService)
         }
     }
 
-    suspend fun getNewMovie(page : Int){
-        _uiState.value = NewMovieState.Innit
-        try {
-            val response = apiService.getNewMovie(page);
-            if (response.isSuccessful){
-                _uiState.value = NewMovieState.Success(newMovieModel = response.body()!!)
-            }else{
-                _uiState.value = NewMovieState.Error
-            }
-        }catch (error : Exception){
-            _uiState.value = NewMovieState.Error
+    private suspend fun getNewMovie(page : Int){
+        _uiState.value = NewMovieState.Loading
+        val response = apiRepository.getNewMovie(page)
+        if(response.data != null){
+            _uiState.value = NewMovieState.Success(response.data)
+            Log.e("bbb", "getNewMovie: ${response.data}", )
+        }else{
+            _uiState.value = NewMovieState.Error(response.message!!)
         }
-
     }
 }
 
 sealed class NewMovieState(){
     object Innit : NewMovieState();
+    object Loading : NewMovieState();
     data class Success(val newMovieModel: NewMovieModel) : NewMovieState();
-    object Error : NewMovieState()
+    data class Error(val message: String) : NewMovieState()
 }
 
 sealed class NewMovieEvent(){

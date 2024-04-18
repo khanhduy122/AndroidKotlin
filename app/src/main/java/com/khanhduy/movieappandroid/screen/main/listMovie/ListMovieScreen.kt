@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -49,15 +50,15 @@ import com.khanhduy.movieappandroid.data.api.ApiConstant
 import com.khanhduy.movieappandroid.dialog.DiaLogError
 import com.khanhduy.movieappandroid.models.ListMovieItem
 import com.khanhduy.movieappandroid.models.ListMovieModel
-import com.khanhduy.movieappandroid.models.Movie
 import com.khanhduy.movieappandroid.ui.theme.BackgroundColor
 import com.khanhduy.movieappandroid.ui.theme.BlueColor
 import com.khanhduy.movieappandroid.ui.theme.HintColor
+import com.khanhduy.movieappandroid.ui.theme.WhiteColor
 import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun ListMovieScreen(indexTab: Int){
+fun ListMovieScreen(indexTab: Int) {
     val listMovieViewModel: ListMovieViewModel = hiltViewModel<ListMovieViewModel>()
     val listMovieState by listMovieViewModel.uiState.collectAsState()
 
@@ -83,21 +84,29 @@ fun ListMovieScreen(indexTab: Int){
         mutableStateOf(false)
     }
 
+    var messageError by rememberSaveable {
+        mutableStateOf("")
+    }
+
     val scrollState = rememberLazyGridState()
 
 
 
     LaunchedEffect(key1 = currentPage) {
-        when(indexTab){
-            1 -> listMovieViewModel.getSeriesMovie(currentPage)
-            2 -> listMovieViewModel.getSingleMovie(currentPage)
-            3 -> listMovieViewModel.getCartoonMovie(currentPage)
+        when (indexTab) {
+            1 -> listMovieViewModel.onEvent(ListMovieEvent.GetSeriesMovie(currentPage))
+            2 -> listMovieViewModel.onEvent(ListMovieEvent.GetSingleMovie(currentPage))
+            3 -> listMovieViewModel.onEvent(ListMovieEvent.GetCartoonMovie(currentPage))
         }
-
     }
 
     when (listMovieState) {
         is ListMovieState.Innit -> {
+            Log.e("bbb", "loading")
+            isLoading = true
+        }
+
+        is ListMovieState.Loading -> {
             Log.e("bbb", "loading")
             isLoading = true
         }
@@ -112,7 +121,8 @@ fun ListMovieScreen(indexTab: Int){
 
         }
 
-        ListMovieState.Error -> {
+        is ListMovieState.Error -> {
+            messageError = (listMovieState as ListMovieState.Error).message
             isShowDialogError = true
         }
     }
@@ -121,112 +131,135 @@ fun ListMovieScreen(indexTab: Int){
         containerColor = BackgroundColor
     ) {
         it
-
-        if (isShowDialogError) {
-            DiaLogError(message = "An error occurred. Please try again") {
-                isShowDialogError = false
-            }
-        }
-
-        if (isLoading || listMovieModel == null) {
+        if (listMovieState is ListMovieState.Error) {
             Box(
-                Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(
-                    color = Color.White
+                Icon(
+                    Icons.Default.Refresh,
+                    contentDescription = null,
+                    tint = WhiteColor,
+                    modifier = Modifier
+                        .height(50.dp)
+                        .width(50.dp)
+                        .clickable {
+                            when (indexTab) {
+                                1 -> listMovieViewModel.onEvent(ListMovieEvent.GetSeriesMovie(currentPage))
+                                2 -> listMovieViewModel.onEvent(ListMovieEvent.GetSingleMovie(currentPage))
+                                3 -> listMovieViewModel.onEvent(ListMovieEvent.GetCartoonMovie(currentPage))
+                            }
+                        },
                 )
             }
-        } else {
-            LazyVerticalGrid(
-                state = scrollState,
-                columns = GridCells.Adaptive(128.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                horizontalArrangement = Arrangement.spacedBy(30.dp),
-            ) {
-                items(listMovieModel.data.items){ movie ->
-                    ListMovieItem(movie)
-                }
-                item (
-                    span = { GridItemSpan(2) }
-                ) {
-                    Column {
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Default.KeyboardArrowLeft,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.clickable {
-                                    if (startPage != 1) {
-                                        startPage -= 4
-                                        totalPageDisplay -= 4
-                                    }
-                                }
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                for (i in startPage..totalPageDisplay) {
-                                    if (currentPage == i) {
-                                        Text(
-                                            text = i.toString(),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            modifier = Modifier
-                                                .background(color = HintColor)
-                                                .padding(10.dp),
-                                            maxLines = 1
-                                        )
-                                    } else {
-                                        Text(
-                                            text = i.toString(),
-                                            modifier = Modifier
-                                                .padding(10.dp)
-                                                .clickable {
-                                                    currentPage = i
-                                                    if (currentPage == totalPageDisplay) {
-                                                        startPage = totalPageDisplay
-                                                        totalPageDisplay = startPage + 4
-                                                    }
-
-                                                },
-                                            style = MaterialTheme.typography.bodySmall,
-                                            maxLines = 1
-                                        )
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Icon(
-                                Icons.Default.KeyboardArrowRight,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.clickable {
-                                    if(totalPageDisplay == listMovieModel.data.params.pagination.totalPages){
-                                        return@clickable
-                                    }
-                                    if (totalPageDisplay + 4 >= listMovieModel.data.params.pagination.totalPages) {
-                                        startPage += 4
-                                        totalPageDisplay += listMovieModel.data.params.pagination.totalPages - totalPageDisplay
-                                    } else {
-                                        startPage += 4
-                                        totalPageDisplay += 4
-                                    }
-                                }
-                            )
-                        }
-                    }
-
+            if (isShowDialogError) {
+                DiaLogError(message = messageError) {
+                    isShowDialogError = false
                 }
             }
 
+        } else {
+
+            if (isLoading || listMovieModel == null) {
+                Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        color = Color.White
+                    )
+                }
+            } else {
+                LazyVerticalGrid(
+                    state = scrollState,
+                    columns = GridCells.Adaptive(128.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(30.dp),
+                ) {
+                    items(listMovieModel.data.items) { movie ->
+                        ListMovieItem(movie)
+                    }
+                    item(
+                        span = { GridItemSpan(2) }
+                    ) {
+                        Column {
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.KeyboardArrowLeft,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.clickable {
+                                        if (startPage != 1) {
+                                            startPage -= 4
+                                            totalPageDisplay -= 4
+                                        }
+                                    }
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    for (i in startPage..totalPageDisplay) {
+                                        if (currentPage == i) {
+                                            Text(
+                                                text = i.toString(),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                modifier = Modifier
+                                                    .background(color = HintColor)
+                                                    .padding(10.dp),
+                                                maxLines = 1
+                                            )
+                                        } else {
+                                            Text(
+                                                text = i.toString(),
+                                                modifier = Modifier
+                                                    .padding(10.dp)
+                                                    .clickable {
+                                                        currentPage = i
+                                                        if (currentPage == totalPageDisplay) {
+                                                            startPage = totalPageDisplay
+                                                            totalPageDisplay = startPage + 4
+                                                        }
+
+                                                    },
+                                                style = MaterialTheme.typography.bodySmall,
+                                                maxLines = 1
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Icon(
+                                    Icons.Default.KeyboardArrowRight,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.clickable {
+                                        if (totalPageDisplay == listMovieModel.data.params.pagination.totalPages) {
+                                            return@clickable
+                                        }
+                                        if (totalPageDisplay + 4 >= listMovieModel.data.params.pagination.totalPages) {
+                                            startPage += 4
+                                            totalPageDisplay += listMovieModel.data.params.pagination.totalPages - totalPageDisplay
+                                        } else {
+                                            startPage += 4
+                                            totalPageDisplay += 4
+                                        }
+                                    }
+                                )
+                            }
+                        }
+
+                    }
+                }
+
+            }
         }
     }
 }
@@ -246,8 +279,9 @@ fun ListMovieItem(movie: ListMovieItem) {
                     .clip(RoundedCornerShape(10.dp)),
                 contentScale = ContentScale.Crop,
             )
-            Box (
-                Modifier.align(Alignment.TopStart)
+            Box(
+                Modifier
+                    .align(Alignment.TopStart)
                     .padding(start = 10.dp, top = 10.dp)
                     .clip(RoundedCornerShape(5.dp))
                     .background(BlueColor)
@@ -259,7 +293,11 @@ fun ListMovieItem(movie: ListMovieItem) {
             }
         }
         Spacer(modifier = Modifier.height(10.dp))
-        Text(text = movie.name, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
+        Text(
+            text = movie.name,
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center
+        )
     }
 
 }

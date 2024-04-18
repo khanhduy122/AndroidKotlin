@@ -5,7 +5,7 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class NewMovieModel(
-    val items: List<Movie>,
+    val items: List<ItemNewMovie>,
     val pagination: Pagination,
     val status: Boolean
 ) : Parcelable

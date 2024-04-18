@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.khanhduy.movieappandroid.screen.main
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,7 +39,7 @@ import com.khanhduy.movieappandroid.ui.theme.DarkColor
 
 
 @Composable
-fun MainScreen(navController: NavHostController = rememberNavController()) {
+fun MainScreen(navController: NavHostController) {
 
     val tabs = listOf("New", "TV Series", "Single", "Cartoon")
     var currentIndexTab by rememberSaveable { mutableStateOf(0) }
@@ -113,7 +114,7 @@ fun MainScreen(navController: NavHostController = rememberNavController()) {
             }
             Spacer(modifier = Modifier.height(20.dp))
             when (currentIndexTab) {
-                0 -> NewMovieScreen()
+                0 -> NewMovieScreen(navController)
                 1 -> ListMovieScreen(1)
                 2 -> ListMovieScreen(2)
                 3 -> ListMovieScreen(3)

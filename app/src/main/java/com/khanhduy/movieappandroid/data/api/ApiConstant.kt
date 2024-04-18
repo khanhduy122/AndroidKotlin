@@ -8,5 +8,6 @@ class ApiConstant {
         const val urlSeriesMovie = "/v1/api/danh-sach/phim-bo"
         const val urlCartoonMovie = " /v1/api/danh-sach/hoat-hinh"
         const val domainImge = "https://img.phimapi.com/"
+        const val urlDetaile = "/phim/"
     }
 }

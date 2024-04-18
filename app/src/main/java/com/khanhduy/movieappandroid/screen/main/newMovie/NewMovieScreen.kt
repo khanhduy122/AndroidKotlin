@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,17 +45,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.khanhduy.movieappandroid.GraphRoot
 import com.khanhduy.movieappandroid.dialog.DiaLogError
-import com.khanhduy.movieappandroid.models.Movie
+import com.khanhduy.movieappandroid.models.ItemNewMovie
 import com.khanhduy.movieappandroid.models.NewMovieModel
 import com.khanhduy.movieappandroid.ui.theme.BackgroundColor
 import com.khanhduy.movieappandroid.ui.theme.HintColor
+import com.khanhduy.movieappandroid.ui.theme.WhiteColor
 import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun NewMovieScreen() {
+fun NewMovieScreen(navController: NavController) {
     val newMovieViewModel: NewMovieViewModel = hiltViewModel<NewMovieViewModel>()
     val newMovieState by newMovieViewModel.uiState.collectAsState()
 
@@ -76,16 +80,19 @@ fun NewMovieScreen() {
         mutableStateOf(currentPage + 6)
     }
 
-    var isShowDialogError by rememberSaveable {
+    var messageError by rememberSaveable {
+        mutableStateOf("")
+    }
+
+    var isShowDialogErro by rememberSaveable {
         mutableStateOf(false)
     }
 
     val scrollState = rememberLazyGridState()
 
 
-
     LaunchedEffect(key1 = currentPage) {
-        newMovieViewModel.getNewMovie(currentPage)
+        newMovieViewModel.onEvent(NewMovieEvent.GetNewMovie(currentPage))
     }
 
     when (newMovieState) {
@@ -93,7 +100,10 @@ fun NewMovieScreen() {
             Log.e("bbb", "loading")
             isLoading = true
         }
-
+        is NewMovieState.Loading -> {
+            Log.e("bbb", "loading")
+            isLoading = true
+        }
         is NewMovieState.Success -> {
             Log.e("bbb", "loading success")
             newMovieModel = (newMovieState as NewMovieState.Success).newMovieModel
@@ -103,9 +113,9 @@ fun NewMovieScreen() {
             }
 
         }
-
-        NewMovieState.Error -> {
-            isShowDialogError = true
+        is NewMovieState.Error -> {
+            isShowDialogErro = true
+            messageError = (newMovieState as NewMovieState.Error).message
         }
     }
 
@@ -114,116 +124,136 @@ fun NewMovieScreen() {
     ) {
         it
 
-        if (isShowDialogError) {
-            DiaLogError(message = "An error occurred. Please try again") {
-                isShowDialogError = false
-            }
-        }
-
-        if (isLoading || newMovieModel == null) {
+        if (newMovieState is NewMovieState.Error) {
             Box(
-                Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(
-                    color = Color.White
+                Icon(
+                    Icons.Default.Refresh,
+                    contentDescription = null,
+                    tint = WhiteColor,
+                    modifier = Modifier.height(50.dp).width(50.dp)
+                        .clickable {
+                                   newMovieViewModel.onEvent(NewMovieEvent.GetNewMovie(currentPage))
+                        },
                 )
             }
-        } else {
-            LazyVerticalGrid(
-                state = scrollState,
-                columns = GridCells.Adaptive(128.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                horizontalArrangement = Arrangement.spacedBy(30.dp),
-            ) {
-                items(newMovieModel.items){  movie ->
-                    NewMovieItem(movie = movie)
-                }
-                item (
-                    span = { GridItemSpan(2)}
-                ) {
-                    Column {
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Default.KeyboardArrowLeft,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.clickable {
-                                    if (startPage != 1) {
-                                        startPage -= 4
-                                        totalPageDisplay -= 4
-                                    }
-                                }
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                for (i in startPage..totalPageDisplay) {
-                                    if (currentPage == i) {
-                                        Text(
-                                            text = i.toString(),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            modifier = Modifier
-                                                .background(color = HintColor)
-                                                .padding(10.dp),
-                                            maxLines = 1
-                                        )
-                                    } else {
-                                        Text(
-                                            text = i.toString(),
-                                            modifier = Modifier
-                                                .padding(10.dp)
-                                                .clickable {
-                                                    currentPage = i
-                                                    if (currentPage == totalPageDisplay) {
-                                                        startPage = totalPageDisplay
-                                                        totalPageDisplay = startPage + 4
-                                                    }
-
-                                                },
-                                            style = MaterialTheme.typography.bodySmall,
-                                            maxLines = 1
-                                        )
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Icon(
-                                Icons.Default.KeyboardArrowRight,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.clickable {
-                                    if (totalPageDisplay + 4 >= newMovieModel.pagination.totalPages) {
-                                        startPage += 4
-                                        totalPageDisplay += newMovieModel.pagination.totalPages - totalPageDisplay
-                                    } else {
-                                        startPage += 4
-                                        totalPageDisplay += 4
-                                    }
-                                }
-                            )
-                        }
-                    }
-                    
+            if(isShowDialogErro){
+                DiaLogError(message = messageError) {
+                    isShowDialogErro = false
                 }
             }
 
+        } else {
+            if (isLoading || newMovieModel == null) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        color = Color.White
+                    )
+                }
+            } else {
+                LazyVerticalGrid(
+                    state = scrollState,
+                    columns = GridCells.Adaptive(128.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(30.dp),
+                ) {
+                    items(newMovieModel.items) { movie ->
+                        NewMovieItem(movie = movie, navController = navController)
+                    }
+                    item(
+                        span = { GridItemSpan(2) }
+                    ) {
+                        Column {
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.KeyboardArrowLeft,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.clickable {
+                                        if (startPage != 1) {
+                                            startPage -= 4
+                                            totalPageDisplay -= 4
+                                        }
+                                    }
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    for (i in startPage..totalPageDisplay) {
+                                        if (currentPage == i) {
+                                            Text(
+                                                text = i.toString(),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                modifier = Modifier
+                                                    .background(color = HintColor)
+                                                    .padding(10.dp),
+                                                maxLines = 1
+                                            )
+                                        } else {
+                                            Text(
+                                                text = i.toString(),
+                                                modifier = Modifier
+                                                    .padding(10.dp)
+                                                    .clickable {
+                                                        currentPage = i
+                                                        if (currentPage == totalPageDisplay) {
+                                                            startPage = totalPageDisplay
+                                                            totalPageDisplay = startPage + 4
+                                                        }
+
+                                                    },
+                                                style = MaterialTheme.typography.bodySmall,
+                                                maxLines = 1
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Icon(
+                                    Icons.Default.KeyboardArrowRight,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.clickable {
+                                        if (totalPageDisplay + 4 >= newMovieModel.pagination.totalPages) {
+                                            startPage += 4
+                                            totalPageDisplay += newMovieModel.pagination.totalPages - totalPageDisplay
+                                        } else {
+                                            startPage += 4
+                                            totalPageDisplay += 4
+                                        }
+                                    }
+                                )
+                            }
+                        }
+
+                    }
+                }
+
+            }
         }
     }
 }
 
 @Composable
-fun NewMovieItem(movie: Movie) {
+fun NewMovieItem(movie: ItemNewMovie, navController: NavController) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable {
+            navController.navigate("${GraphRoot.Detail.route}/${movie.slug}")
+        }
     ) {
         AsyncImage(
             model = movie.poster_url,
@@ -235,7 +265,7 @@ fun NewMovieItem(movie: Movie) {
             contentScale = ContentScale.Crop,
         )
         Spacer(modifier = Modifier.height(10.dp))
-        Text(text = movie.name, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+        Text(text = movie.name, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
     }
 
 }
