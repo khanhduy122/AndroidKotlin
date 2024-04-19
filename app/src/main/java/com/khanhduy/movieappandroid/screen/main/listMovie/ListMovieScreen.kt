@@ -45,7 +45,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.khanhduy.movieappandroid.GraphRoot
 import com.khanhduy.movieappandroid.data.api.ApiConstant
 import com.khanhduy.movieappandroid.dialog.DiaLogError
 import com.khanhduy.movieappandroid.models.ListMovieItem
@@ -58,7 +60,7 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun ListMovieScreen(indexTab: Int) {
+fun ListMovieScreen(indexTab: Int, navController: NavController) {
     val listMovieViewModel: ListMovieViewModel = hiltViewModel<ListMovieViewModel>()
     val listMovieState by listMovieViewModel.uiState.collectAsState()
 
@@ -102,17 +104,14 @@ fun ListMovieScreen(indexTab: Int) {
 
     when (listMovieState) {
         is ListMovieState.Innit -> {
-            Log.e("bbb", "loading")
             isLoading = true
         }
 
         is ListMovieState.Loading -> {
-            Log.e("bbb", "loading")
             isLoading = true
         }
 
         is ListMovieState.Success -> {
-            Log.e("bbb", "loading success")
             listMovieModel = (listMovieState as ListMovieState.Success).listMovieModel
             isLoading = false
             rememberCoroutineScope().launch {
@@ -177,7 +176,7 @@ fun ListMovieScreen(indexTab: Int) {
                     horizontalArrangement = Arrangement.spacedBy(30.dp),
                 ) {
                     items(listMovieModel.data.items) { movie ->
-                        ListMovieItem(movie)
+                        ListMovieItem(movie, navController)
                     }
                     item(
                         span = { GridItemSpan(2) }
@@ -265,9 +264,12 @@ fun ListMovieScreen(indexTab: Int) {
 }
 
 @Composable
-fun ListMovieItem(movie: ListMovieItem) {
+fun ListMovieItem(movie: ListMovieItem, navController: NavController) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable {
+            navController.navigate("${GraphRoot.Detail.route}/${movie.slug}")
+        }
     ) {
         Box {
             AsyncImage(

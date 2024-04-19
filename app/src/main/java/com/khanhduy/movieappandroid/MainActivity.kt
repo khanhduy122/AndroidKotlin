@@ -17,8 +17,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.khanhduy.movieappandroid.models.DetailMovieModel
 import com.khanhduy.movieappandroid.screen.detail.DetailMovieScreen
 import com.khanhduy.movieappandroid.screen.main.MainScreen
+import com.khanhduy.movieappandroid.screen.playVideo.PlayVideoScreen
 import com.khanhduy.movieappandroid.screen.splash.SplashScreen
 import com.khanhduy.movieappandroid.ui.theme.MovieAppAndroidTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -36,31 +38,44 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainApp(){
+fun MainApp() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = GraphRoot.Splash.route ){
-        composable(route = GraphRoot.Splash.route){
+    NavHost(navController = navController, startDestination = GraphRoot.Splash.route) {
+        composable(route = GraphRoot.Splash.route) {
             SplashScreen(navController)
         }
-        composable(route = GraphRoot.Main.route){
+
+        composable(route = GraphRoot.Main.route) {
             MainScreen(navController)
         }
+
         composable(
             route = "${GraphRoot.Detail.route}/{slug}",
             arguments = listOf(navArgument("slug") {
                 type = NavType.StringType
             })
-        ){backStackEntry ->
-            Log.e("bbb", "MainApp: ${backStackEntry.arguments?.getString("slug")!!}", )
-            DetailMovieScreen(slug = backStackEntry.arguments?.getString("slug")!!)
+        ) { backStackEntry ->
+            val slug = backStackEntry.arguments?.getString("slug")!!
+            DetailMovieScreen(slug = slug, navController)
+        }
+
+        composable(route = GraphRoot.PlayVideo.route) { backStackEntry ->
+            val detailMovieModel =
+                navController.previousBackStackEntry?.savedStateHandle?.get<DetailMovieModel>(
+                    key = "detailMovieModel"
+                )
+            val episode =
+                navController.previousBackStackEntry?.savedStateHandle?.get<Int>(key = "episode")
+            PlayVideoScreen(detailMovieModel = detailMovieModel!!, episode!!)
         }
     }
 }
 
-sealed class GraphRoot(val route: String){
+sealed class GraphRoot(val route: String) {
     object Splash : GraphRoot(route = "SplashScreen")
     object Main : GraphRoot(route = "MainScreen")
     object Detail : GraphRoot(route = "DetailScreen")
+    object PlayVideo : GraphRoot(route = "PlayVideoScreen")
 }
 

@@ -1,5 +1,9 @@
 package com.khanhduy.movieappandroid.models
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class Movie(
     val _id: String,
     val actor: List<String>,
@@ -12,7 +16,6 @@ data class Movie(
     val episode_total: String,
     val is_copyright: Boolean,
     val lang: String,
-    val modified: Modified,
     val name: String,
     val notify: String,
     val origin_name: String,
@@ -28,4 +31,35 @@ data class Movie(
     val type: String,
     val view: Int,
     val year: Int
-)
+) : Parcelable{
+    fun getCategories() : String{
+        var categories : String = ""
+        category.forEach {
+            categories += "${it.name}, "
+        }
+        return categories.substring(0, categories.length-2)
+    }
+    fun getDirector() : String{
+        var directors : String = ""
+        director.forEach {
+            directors += "${it}, "
+        }
+        return directors.substring(0, directors.length-2)
+    }
+
+    fun getCountry() : String{
+        var countrys : String = ""
+        country.forEach {
+            countrys += "${it.name}, "
+        }
+        return countrys.substring(0, countrys.length-2)
+    }
+
+    fun getActor() : String{
+        var actors : String = ""
+        actor.forEach {
+            actors += "${it}, "
+        }
+        return actors.substring(0, actors.length-2)
+    }
+}

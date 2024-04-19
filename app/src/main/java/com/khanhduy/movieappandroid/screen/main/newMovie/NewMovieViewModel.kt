@@ -34,7 +34,6 @@ class NewMovieViewModel @Inject constructor (private val apiRepository: ApiRepos
         val response = apiRepository.getNewMovie(page)
         if(response.data != null){
             _uiState.value = NewMovieState.Success(response.data)
-            Log.e("bbb", "getNewMovie: ${response.data}", )
         }else{
             _uiState.value = NewMovieState.Error(response.message!!)
         }

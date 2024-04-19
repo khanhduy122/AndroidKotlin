@@ -1,7 +1,5 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.khanhduy.movieappandroid.screen.main
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,7 +28,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.khanhduy.movieappandroid.screen.main.listMovie.ListMovieScreen
 import com.khanhduy.movieappandroid.screen.main.newMovie.NewMovieScreen
 import com.khanhduy.movieappandroid.ui.theme.BackgroundColor
@@ -115,9 +112,9 @@ fun MainScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(20.dp))
             when (currentIndexTab) {
                 0 -> NewMovieScreen(navController)
-                1 -> ListMovieScreen(1)
-                2 -> ListMovieScreen(2)
-                3 -> ListMovieScreen(3)
+                1 -> ListMovieScreen(1, navController)
+                2 -> ListMovieScreen(2, navController)
+                3 -> ListMovieScreen(3, navController)
             }
         }
 

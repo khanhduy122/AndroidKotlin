@@ -1,5 +1,6 @@
 package com.khanhduy.movieappandroid.screen.detail
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.khanhduy.movieappandroid.models.DetailMovieModel
@@ -20,6 +21,7 @@ class DetailMovieViewModel @Inject constructor(private val apiRepository: ApiRep
         viewModelScope.launch {
             when(event){
                 is DetailMovieEvent.Init -> getDetailMovie(event.slug)
+                else -> {}
             }
         }
 

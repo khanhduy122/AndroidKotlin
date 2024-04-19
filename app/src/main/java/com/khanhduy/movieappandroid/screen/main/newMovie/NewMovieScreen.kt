@@ -97,15 +97,12 @@ fun NewMovieScreen(navController: NavController) {
 
     when (newMovieState) {
         is NewMovieState.Innit -> {
-            Log.e("bbb", "loading")
             isLoading = true
         }
         is NewMovieState.Loading -> {
-            Log.e("bbb", "loading")
             isLoading = true
         }
         is NewMovieState.Success -> {
-            Log.e("bbb", "loading success")
             newMovieModel = (newMovieState as NewMovieState.Success).newMovieModel
             isLoading = false
             rememberCoroutineScope().launch {
