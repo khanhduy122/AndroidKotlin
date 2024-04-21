@@ -27,6 +27,7 @@ import com.khanhduy.movieappandroid.dialog.DiaLogError
 import com.khanhduy.movieappandroid.ui.theme.BackgroundColor
 import com.khanhduy.movieappandroid.ui.theme.BlueColor
 import com.khanhduy.movieappandroid.ui.theme.ButtonColor
+import com.khanhduy.movieappandroid.ui.theme.LocalAppDimens
 
 
 @Composable
@@ -76,7 +77,7 @@ fun SplashScreen (navController: NavController){
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
+                    .height(LocalAppDimens.current.buttonHeight),
                 colors = ButtonDefaults.buttonColors(BlueColor),
                 shape = RoundedCornerShape(10.dp),
                 onClick = {

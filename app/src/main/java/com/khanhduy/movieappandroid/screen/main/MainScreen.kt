@@ -33,6 +33,7 @@ import com.khanhduy.movieappandroid.screen.main.newMovie.NewMovieScreen
 import com.khanhduy.movieappandroid.ui.theme.BackgroundColor
 import com.khanhduy.movieappandroid.ui.theme.BlueColor
 import com.khanhduy.movieappandroid.ui.theme.DarkColor
+import com.khanhduy.movieappandroid.ui.theme.LocalAppDimens
 
 
 @Composable
@@ -56,7 +57,7 @@ fun MainScreen(navController: NavHostController) {
                 text = "Find Movies, Tv series, and more ...",
                 style = MaterialTheme.typography.titleMedium
             )
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerLarge))
             TextField(
                 value = contentSearch,
                 onValueChange = {
@@ -79,7 +80,7 @@ fun MainScreen(navController: NavHostController) {
                 shape = RoundedCornerShape(20.dp),
                 singleLine =   true
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerMedium))
             TabRow(
                 selectedTabIndex = currentIndexTab,
                 containerColor = BackgroundColor,
@@ -109,7 +110,7 @@ fun MainScreen(navController: NavHostController) {
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerMedium))
             when (currentIndexTab) {
                 0 -> NewMovieScreen(navController)
                 1 -> ListMovieScreen(1, navController)

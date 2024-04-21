@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -91,6 +92,10 @@ fun ListMovieScreen(indexTab: Int, navController: NavController) {
     }
 
     val scrollState = rememberLazyGridState()
+
+    val screenHeight = LocalConfiguration.current.screenHeightDp
+
+    val screenWidth = LocalConfiguration.current.screenWidthDp
 
 
 
@@ -176,7 +181,7 @@ fun ListMovieScreen(indexTab: Int, navController: NavController) {
                     horizontalArrangement = Arrangement.spacedBy(30.dp),
                 ) {
                     items(listMovieModel.data.items) { movie ->
-                        ListMovieItem(movie, navController)
+                        ListMovieItem(movie, navController, screenHeight)
                     }
                     item(
                         span = { GridItemSpan(2) }
@@ -264,7 +269,7 @@ fun ListMovieScreen(indexTab: Int, navController: NavController) {
 }
 
 @Composable
-fun ListMovieItem(movie: ListMovieItem, navController: NavController) {
+fun ListMovieItem(movie: ListMovieItem, navController: NavController, screenHeight : Int) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable {
@@ -276,7 +281,7 @@ fun ListMovieItem(movie: ListMovieItem, navController: NavController) {
                 model = "${ApiConstant.domainImge}${movie.poster_url}",
                 contentDescription = null,
                 modifier = Modifier
-                    .height(200.dp)
+                    .height((screenHeight * 0.25).dp)
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp)),
                 contentScale = ContentScale.Crop,

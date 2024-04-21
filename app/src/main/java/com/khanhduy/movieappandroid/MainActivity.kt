@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp() {
     val navController = rememberNavController()
-
+ 
     NavHost(navController = navController, startDestination = GraphRoot.Splash.route) {
         composable(route = GraphRoot.Splash.route) {
             SplashScreen(navController)
@@ -57,6 +57,7 @@ fun MainApp() {
             })
         ) { backStackEntry ->
             val slug = backStackEntry.arguments?.getString("slug")!!
+            Log.e("bbb", "MainApp: DetaileMovie $slug", )
             DetailMovieScreen(slug = slug, navController)
         }
 
@@ -67,7 +68,9 @@ fun MainApp() {
                 )
             val episode =
                 navController.previousBackStackEntry?.savedStateHandle?.get<Int>(key = "episode")
-            PlayVideoScreen(detailMovieModel = detailMovieModel!!, episode!!)
+
+            Log.e("bbb", "MainApp: PlayVideoScreen $detailMovieModel", )
+            PlayVideoScreen(detailMovieModel = detailMovieModel, episode, navController)
         }
     }
 }

@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -90,6 +92,10 @@ fun NewMovieScreen(navController: NavController) {
 
     val scrollState = rememberLazyGridState()
 
+    val screenHeight = LocalConfiguration.current.screenHeightDp
+
+    val screenWidth = LocalConfiguration.current.screenWidthDp
+
 
     LaunchedEffect(key1 = currentPage) {
         newMovieViewModel.onEvent(NewMovieEvent.GetNewMovie(currentPage))
@@ -130,9 +136,11 @@ fun NewMovieScreen(navController: NavController) {
                     Icons.Default.Refresh,
                     contentDescription = null,
                     tint = WhiteColor,
-                    modifier = Modifier.height(50.dp).width(50.dp)
+                    modifier = Modifier
+                        .height(50.dp)
+                        .width(50.dp)
                         .clickable {
-                                   newMovieViewModel.onEvent(NewMovieEvent.GetNewMovie(currentPage))
+                            newMovieViewModel.onEvent(NewMovieEvent.GetNewMovie(currentPage))
                         },
                 )
             }
@@ -160,7 +168,7 @@ fun NewMovieScreen(navController: NavController) {
                     horizontalArrangement = Arrangement.spacedBy(30.dp),
                 ) {
                     items(newMovieModel.items) { movie ->
-                        NewMovieItem(movie = movie, navController = navController)
+                        NewMovieItem(movie = movie, navController = navController, screenHeight)
                     }
                     item(
                         span = { GridItemSpan(2) }
@@ -245,7 +253,7 @@ fun NewMovieScreen(navController: NavController) {
 }
 
 @Composable
-fun NewMovieItem(movie: ItemNewMovie, navController: NavController) {
+fun NewMovieItem(movie: ItemNewMovie, navController: NavController, screenHeight : Int) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable {
@@ -256,7 +264,7 @@ fun NewMovieItem(movie: ItemNewMovie, navController: NavController) {
             model = movie.poster_url,
             contentDescription = null,
             modifier = Modifier
-                .height(200.dp)
+                .height((screenHeight * 0.25).dp)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp)),
             contentScale = ContentScale.Crop,
