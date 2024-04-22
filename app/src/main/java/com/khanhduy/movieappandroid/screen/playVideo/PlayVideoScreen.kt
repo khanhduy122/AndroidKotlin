@@ -43,11 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DataSource
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
 import com.khanhduy.movieappandroid.models.DetailMovieModel
@@ -56,8 +52,12 @@ import com.khanhduy.movieappandroid.ui.theme.BlackColor
 import com.khanhduy.movieappandroid.ui.theme.BlueColor
 import com.khanhduy.movieappandroid.ui.theme.LocalAppDimens
 
-@OptIn(UnstableApi::class) @Composable
-fun PlayVideoScreen(detailMovieModel: DetailMovieModel?, episode : Int?, navController: NavController){
+@Composable
+fun PlayVideoScreen(
+    detailMovieModel: DetailMovieModel?,
+    episode: Int?,
+    navController: NavController
+) {
 
     var currentIndexServer by rememberSaveable {
         mutableStateOf(0)
@@ -71,13 +71,11 @@ fun PlayVideoScreen(detailMovieModel: DetailMovieModel?, episode : Int?, navCont
 
     var playWhenReady by remember { mutableStateOf(true) }
 
-    val dataSourceFactory: DataSource.Factory = DefaultHttpDataSource.Factory()
-
-//    val hlsMediaSource =
-//        HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(detailMovieModel!!.episodes.first().server_data[0].link_m3u8))
-
-    val mediaItem = MediaItem.Builder().setUri(detailMovieModel!!.episodes.first().server_data[0].link_m3u8).setMimeType(
-        MimeTypes.APPLICATION_M3U8).build()
+    val mediaItem =
+        MediaItem.Builder().setUri(detailMovieModel!!.episodes.first().server_data[0].link_m3u8)
+            .setMimeType(
+                MimeTypes.APPLICATION_M3U8
+            ).build()
 
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
@@ -90,14 +88,15 @@ fun PlayVideoScreen(detailMovieModel: DetailMovieModel?, episode : Int?, navCont
     }
 
 
-    Scaffold (
+    Scaffold(
         containerColor = BackgroundColor
-    ){ it
-        Column (
+    ) {
+        it
+        Column(
 
         ) {
             DisposableEffect(
-                Box (
+                Box(
                     modifier = Modifier.aspectRatio(16 / 9f)
                 ) {
                     AndroidView(
@@ -120,62 +119,126 @@ fun PlayVideoScreen(detailMovieModel: DetailMovieModel?, episode : Int?, navCont
                     exoPlayer.release()
                 }
             }
-            Column (
+            Column(
                 Modifier
                     .padding(LocalAppDimens.current.spacerMedium)
-                    .verticalScroll(rememberScrollState())) {
-                Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerSmall))
-                Text(text = detailMovieModel.movie.name, style = MaterialTheme.typography.titleMedium)
+                    .verticalScroll(rememberScrollState())
+            )
+            {
+                infomation(detailMovieModel = detailMovieModel)
 
-                Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerLarge))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(LocalAppDimens.current.spacerSmall)
-                ) {
-                    detailMovieModel.episodes.forEachIndexed{index, episode ->
-                        ElevatedButton(
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if(currentIndexServer == index) BlueColor else Color.LightGray
-                            ),
-                            contentPadding = PaddingValues(),
-                            shape = RoundedCornerShape(5.dp),
-                            onClick = {
-
-                            }
-                        ) {
-                            Text(
-                                text = "Server ${index+1}",
-                                style = MaterialTheme.typography.bodySmall.copy(color = BlackColor),
-                            )
-                        }
-                    }
-                }
-
-                Row (
-                    horizontalArrangement = Arrangement.spacedBy(LocalAppDimens.current.spacerSmall),
-                    modifier = Modifier.horizontalScroll(rememberScrollState())
-                ){
-                    detailMovieModel.episodes[currentIndexServer].server_data.forEachIndexed{index, serverData ->
-                        ElevatedButton(
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if(currentIndexEpisode == index) BlueColor else Color.LightGray
-                            ),
-                            shape = RoundedCornerShape(5.dp),
-                            contentPadding = PaddingValues(),
-                            onClick = {
-
-                            }
-                        ) {
-                            Text(
-                                text = "${index+1}",
-                                style = MaterialTheme.typography.bodySmall.copy(color = BlackColor),
-                            )
-                        }
-                    }
-                }
+                episodes(
+                    detailMovieModel = detailMovieModel,
+                    currentIndexServer = currentIndexServer,
+                    currentIndexEpisode = currentIndexEpisode!!
+                )
             }
-            }
+        }
 
 
     }
 
+}
+
+@Composable
+private fun infomation(detailMovieModel: DetailMovieModel) {
+    Column {
+        Text(
+            text = detailMovieModel.movie.name,
+            style = MaterialTheme.typography.titleSmall
+        )
+        Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerMedium))
+        Text(
+            text = "Nội Dung",
+            style = MaterialTheme.typography.titleSmall
+        )
+        Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerSmall))
+        Text(
+            text = detailMovieModel!!.movie.content,
+            style = MaterialTheme.typography.bodySmall
+        )
+        Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerMedium))
+        Text(
+            text = "Thông Tin",
+            style = MaterialTheme.typography.titleSmall
+        )
+        Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerSmall))
+        Text(
+            text = "Thể Loại: ${detailMovieModel!!.movie.getCategories()}",
+            style = MaterialTheme.typography.bodySmall
+        )
+        Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerSmall))
+        Text(
+            text = "Năm sản xuất: ${detailMovieModel!!.movie.year}",
+            style = MaterialTheme.typography.bodySmall
+        )
+        Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerSmall))
+        Text(
+            text = "Đạo diễn: ${detailMovieModel!!.movie.getDirector()}",
+            style = MaterialTheme.typography.bodySmall
+        )
+        Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerSmall))
+        Text(
+            text = "Diễn viên: ${detailMovieModel!!.movie.getActor()}",
+            style = MaterialTheme.typography.bodySmall
+        )
+        Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerSmall))
+        Text(
+            text = "Quốc gia: ${detailMovieModel!!.movie.getCountry()}",
+            style = MaterialTheme.typography.bodySmall
+        )
+        Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerSmall))
+        Text(
+            text = "Lượt Xem: ${detailMovieModel!!.movie.view}",
+            style = MaterialTheme.typography.bodySmall
+        )
+        Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerSmall))
+        Text(
+            text = "Chất lượng: ${detailMovieModel!!.movie.quality}",
+            style = MaterialTheme.typography.bodySmall
+        )
+        Spacer(modifier = Modifier.height(LocalAppDimens.current.spacerSmall))
+    }
+}
+
+@Composable
+private fun episodes(
+    detailMovieModel: DetailMovieModel,
+    currentIndexServer: Int,
+    currentIndexEpisode: Int
+) {
+    Column {
+        detailMovieModel!!.episodes.forEachIndexed { indexServer, episodes ->
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = "Server ${indexServer + 1}",
+                style = MaterialTheme.typography.bodySmall
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                episodes.server_data.forEachIndexed { index, it ->
+
+                    ElevatedButton(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (currentIndexServer == indexServer && currentIndexEpisode == index) BlueColor else Color.LightGray
+                        ),
+                        shape = RoundedCornerShape(5.dp),
+                        onClick = {
+
+                        }
+                    ) {
+                        Text(
+                            text = "${index + 1}",
+                            style = MaterialTheme.typography.bodySmall.copy(color = BlackColor),
+                        )
+                    }
+
+                }
+            }
+
+        }
+    }
 }
